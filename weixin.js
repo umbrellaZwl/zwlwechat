@@ -91,6 +91,26 @@ exports.reply = function* (next){
         thumbMediaId: data.media_id
       }
     }
+    else if (content === '8') {
+      var data = yield wechatApi.uploadMaterial('image',__dirname+'/2.jpg', { type: 'image'})
+
+      reply = {
+        type: 'image',
+        mediaId: data.media_id
+      }
+    }
+    else if (content === '9') {
+      var data = yield wechatApi.uploadMaterial('video',__dirname+'/6.mp4', {type: 'video', description: '{"title":"Really a nice place","introduction": "Never think it so easy"}'})
+
+      console.log(data)
+
+      reply = {
+        type: 'video',
+        title: '回复视频内容',
+        description: '打个篮球玩玩',
+        mediaId: data.media_id
+      }
+    }
 
     this.body = reply
   }
