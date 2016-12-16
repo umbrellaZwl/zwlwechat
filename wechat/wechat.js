@@ -36,6 +36,9 @@ var api = {
     get: prefix + 'menu/get?',
     del: prefix + 'menu/delete?',
     current: prefix + 'get_current_selfmenu_info?',
+  },
+  ticket: {
+    get: prefix + 'ticket/getticket?'
   }
 }
 
@@ -45,6 +48,8 @@ function Wechat(opts){
   this.appSecret = opts.appSecret
   this.getAccessToken = opts.getAccessToken
   this.saveAccessToken = opts.saveAccessToken
+  this.getTicket = opts.getTicket
+  this.saveTicket = opts.saveTicket
 
   this.fetchAccessToken()
   //this.uploadMaterial('image',__dirname+'/2.jpg')
@@ -76,14 +81,71 @@ Wechat.prototype.fetchAccessToken = function(){
       }
     })
     .then(function(data){
-      that.access_token = data.access_token
-      that.expires_in = data.expires_in
 
       that.saveAccessToken(data)
       resolve(data)
     })
   })
 
+}
+
+Wechat.prototype.fetchTicket = function(access_token){
+  var that = this
+
+  return new Promise(function(resolve, reject){
+    that.getTicket()
+    .then(function(data) {
+      try {
+        data = JSON.parse(data)
+      }
+      catch(e){
+        return that.updateTicket(access_token)
+      }
+
+      if( that.isVaildTicket(data) ){
+        return Promise.resolve(data)
+      }else{
+        return that.updateTicket(access_token)
+      }
+    })
+    .then(function(data){
+
+      that.saveTicket(data)
+      resolve(data)
+    })
+  })
+
+}
+
+Wechat.prototype.updateTicket = function(access_token){
+  var url = api.ticket.get + '&access_token=' + access_token + '&type=jsapi'
+
+  return new Promise(function(resolve, reject){
+    request({url: url, json: true}).then(function(response){
+      var data = response[1]
+      var now = (new Date().getTime())
+      var expires_in = now + (data.expires_in - 20) * 1000
+
+      data.expires_in = expires_in
+      resolve(data)
+    })
+  })
+}
+
+Wechat.prototype.isVaildTicket = function(data){
+  if( !data || !data.ticket || data.expires_in ){
+    return false
+  }
+
+  var ticket = data.ticket
+  var expires_in = data.expires_in
+  var now = (new Date().getTime())
+
+  if( ticket && now < expires_in ){
+    return true
+  }else{
+    return false
+  }
 }
 
 Wechat.prototype.isVaildAccessToken = function(data){
