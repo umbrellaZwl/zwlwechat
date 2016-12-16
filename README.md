@@ -1,2 +1,3 @@
 # zwlwechat
-观看scott老师的node视频，用koa写出来的微信公众平台代码
+使用node的一个web框架koa写的微信公众号的代码
+用到：koa，request，promise，generator
